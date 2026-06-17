@@ -1,9 +1,10 @@
+streamlit
 pandas
 numpy
-scikit.learn
-streamlit
+scikit-learn
 mlflow
 joblib
-matplot.lib
+matplotlib
 seaborn
 xgboost
+huggingface_hub

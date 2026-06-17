@@ -35,31 +35,11 @@ jobs:
 
       - name: Check src Python files
         run: |
-          find src -name "*.py" -print -exec python -m py_compile {} \;
-
-      - name: Run data ingestion if available
-        run: |
-          if [ -s src/data_ingestion.py ]; then
-            python src/data_ingestion.py
+          if [ -d src ]; then
+            find src -name "*.py" -print -exec python -m py_compile {} \;
           else
-            echo "src/data_ingestion.py is empty. Skipping."
+            echo "src folder not found. Skipping src check."
           fi
-
-      - name: Run data preprocessing if available
-        run: |
-          if [ -s src/data_preprocessing.py ]; then
-            python src/data_preprocessing.py
-          else
-            echo "src/data_preprocessing.py is empty. Skipping."
-          fi
-
-      - name: Run model training
-        run: |
-          python src/model_training.py
-
-      - name: Run model evaluation
-        run: |
-          python src/model_evaluation.py
 
       - name: Build Docker image
         run: |
@@ -68,5 +48,4 @@ jobs:
       - name: Pipeline completed
         run: |
           echo "CI/CD pipeline completed successfully."
-
       

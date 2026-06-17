@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-project:
+  ci-cd-check:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,9 +19,9 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Show repository files
+      - name: Show repository structure
         run: |
-          echo "Current repository structure:"
+          echo "Repository files:"
           ls -R
 
       - name: Install dependencies
@@ -37,8 +37,36 @@ jobs:
         run: |
           find src -name "*.py" -print -exec python -m py_compile {} \;
 
-      - name: Pipeline status
+      - name: Run data ingestion if available
         run: |
-          echo "Repository structure and Python files are valid."
+          if [ -s src/data_ingestion.py ]; then
+            python src/data_ingestion.py
+          else
+            echo "src/data_ingestion.py is empty. Skipping."
+          fi
+
+      - name: Run data preprocessing if available
+        run: |
+          if [ -s src/data_preprocessing.py ]; then
+            python src/data_preprocessing.py
+          else
+            echo "src/data_preprocessing.py is empty. Skipping."
+          fi
+
+      - name: Run model training
+        run: |
+          python src/model_training.py
+
+      - name: Run model evaluation
+        run: |
+          python src/model_evaluation.py
+
+      - name: Build Docker image
+        run: |
+          docker build -t machine-failure-prediction .
+
+      - name: Pipeline completed
+        run: |
+          echo "CI/CD pipeline completed successfully."
 
       

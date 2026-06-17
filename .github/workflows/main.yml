@@ -1,0 +1,74 @@
+name: Machine Failure Prediction MLOps Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  register-dataset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pip install -r week_3_mls/requirements.txt
+
+      - name: Register dataset on Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ vars.HF_USERNAME }}
+          HF_DATASET_REPO_ID: ${{ vars.HF_DATASET_REPO_ID }}
+        run: python week_3_mls/model_building/data_register.py
+
+  data-prep:
+    needs: register-dataset
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pip install -r week_3_mls/requirements.txt
+
+      - name: Prepare train-test data
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ vars.HF_USERNAME }}
+          HF_DATASET_REPO_ID: ${{ vars.HF_DATASET_REPO_ID }}
+        run: python week_3_mls/model_building/prep.py
+
+  model-training:
+    needs: data-prep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pip install -r week_3_mls/requirements.txt
+
+      - name: Train model
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ vars.HF_USERNAME }}
+          HF_DATASET_REPO_ID: ${{ vars.HF_DATASET_REPO_ID }}
+          HF_MODEL_REPO_ID: ${{ vars.HF_MODEL_REPO_ID }}
+          MLFLOW_TRACKING_URI: file:./mlruns
+          FAST_TRAIN: "1"
+        run: python week_3_mls/model_building/train.py
+
+  deploy-to-huggingface:
+    needs: model-training
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pip install -r week_3_mls/requirements.txt
+
+      - name: Deploy Streamlit app to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ vars.HF_USERNAME }}
+          HF_SPACE_REPO_ID: ${{ vars.HF_SPACE_REPO_ID }}
+        run: python week_3_mls/hosting/hosting.py

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  ci-cd-check:
+  ci-cd-check-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install streamlit pandas numpy scikit-learn mlflow joblib matplotlib seaborn xgboost huggingface_hub
 
       - name: Check app.py syntax
         run: |
@@ -45,6 +45,38 @@ jobs:
         run: |
           docker build -t machine-failure-prediction .
 
+      - name: Deploy to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_REPO_ID: ${{ vars.HF_SPACE_REPO_ID }}
+        run: |
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+
+          token = os.environ["HF_TOKEN"]
+          repo_id = os.environ["HF_SPACE_REPO_ID"]
+
+          api = HfApi(token=token)
+
+          api.upload_folder(
+              folder_path=".",
+              repo_id=repo_id,
+              repo_type="space",
+              ignore_patterns=[
+                  ".git/*",
+                  ".github/*",
+                  "__pycache__/*",
+                  ".pytest_cache/*",
+                  "mlruns/*",
+                  "venv/*",
+                  ".venv/*"
+              ],
+          )
+
+          print(f"Uploaded files to Hugging Face Space: {repo_id}")
+          PY
+
       - name: Pipeline completed
         run: |
-          echo "CI/CD pipeline completed successfully."
+          echo "CI/CD pipeline completed successfully and deployed to Hugging Face Space."

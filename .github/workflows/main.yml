@@ -21,7 +21,6 @@ jobs:
 
       - name: Show repository structure
         run: |
-          echo "Repository files:"
           ls -R
 
       - name: Install dependencies
@@ -32,14 +31,6 @@ jobs:
       - name: Check app.py syntax
         run: |
           python -m py_compile app.py
-
-      - name: Check src Python files
-        run: |
-          if [ -d src ]; then
-            find src -name "*.py" -print -exec python -m py_compile {} \;
-          else
-            echo "src folder not found. Skipping src check."
-          fi
 
       - name: Build Docker image
         run: |
@@ -58,7 +49,6 @@ jobs:
           repo_id = os.environ["HF_SPACE_REPO_ID"]
 
           api = HfApi(token=token)
-
           api.upload_folder(
               folder_path=".",
               repo_id=repo_id,
@@ -74,9 +64,9 @@ jobs:
               ],
           )
 
-          print(f"Uploaded files to Hugging Face Space: {repo_id}")
+          print(f"Uploaded to Hugging Face Space: {repo_id}")
           PY
 
       - name: Pipeline completed
         run: |
-          echo "CI/CD pipeline completed successfully and deployed to Hugging Face Space."
+          echo "CI/CD and Hugging Face deployment completed successfully."

@@ -9,6 +9,6 @@ st.title("Machine Failure Prediction")
 st.write("MLOps Project Deployment")
 
 st.info(
-    "This Streamlit app is ready for deployment. "
-    "Model prediction logic can be connected after the trained model file is available."
+    "The application is running successfully. "
+    "Model prediction logic can be connected after model training is completed."
 )
